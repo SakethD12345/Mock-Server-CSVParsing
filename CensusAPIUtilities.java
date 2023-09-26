@@ -4,15 +4,20 @@ import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Types;
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory;
 
+import java.util.Set;
+
 public class CensusAPIUtilities {
     private Set codeToState;
     private Set stateToCounties;
     /**
      * This class isn't meant to be instantiated for this demo: it's just got one static method in it.
      */
-    private SoupAPIUtilities() {}
+    private CensusAPIUtilities() {
+    }
 
     public void mapCodes() {
+
+
 
 
     }
@@ -28,7 +33,7 @@ public class CensusAPIUtilities {
      *   (we're re-using Moshi's JsonDataException here; this may or may not be a good choice in reality)
      * @throws IOException if the given string isn't valid JSON
      * @return the Soup object
-     */
+
     public static Soup fromJSON(String jsonList, boolean timidChef) throws JsonDataException, IOException, ActualFlavorException {
         // Create an adapter to read the json string (hopefully) into Ingredient objects
         // There's one challenge: as the writer of this class, we don't know *which* ingredients
@@ -92,31 +97,15 @@ public class CensusAPIUtilities {
         }
     }
 
-    /**
      * Serializes the ingredients in a bowl soup into a Json object for sending
      * across the 'net. The result does not include the chef's timidity or
      * any other soup properties---we're just sending the ingredients.
      *
-     * @param soup The soup to serialize into a String
      * @return the serialized Json list representing the ingredients
      */
-    public static String toJson(Soup soup) {
+    public static String toJson() {
         // as in fromJson, we need to work with arbitrary Ingredients.
         // The polymorphic factory will automatically _insert_ the "type" field
-        Moshi moshi = new Moshi.Builder()
-                .add(
-                        // Expect something that's an Ingredient...
-                        PolymorphicJsonAdapterFactory.of(Ingredient.class, "type")
-                                // ...with two possibilities for concrete shapes, disambiguated by type:
-                                .withSubtype(Carrots.class, "carrot")
-                                .withSubtype(HotPeppers.class, "hotpeppers")
-                )
-                .build();
-
-        // Although the Java object contains a set, there's no analogue in Json.
-        // Moshi will serialize this set as a list.
-        Type setOfIngredientsType = Types.newParameterizedType(Set.class, Ingredient.class);
-        JsonAdapter<Set<Ingredient>> adapter = moshi.adapter(setOfIngredientsType);
-        return adapter.toJson(soup.ingredients());
-    }
+        return "hello";
+}
 }
