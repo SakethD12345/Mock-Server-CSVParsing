@@ -5,7 +5,7 @@ import java.util.List;
 This class is used to search for certain terms in the parsed files and also has the option for
 specifying the column that you want to search the term in
  */
-public class Search {
+public class CSVSearch {
     public String target;
     public List<List<String>> parsedRows;
     public List<String> header;
@@ -18,7 +18,7 @@ public class Search {
      * @param header is the parsed header of the csv if it exists otherwise it's an empty array
      * @param hasHeader is a boolean telling whether the file has a header
      */
-    public Search(String target, List<String[]> parsedRows, List<String> header, Boolean hasHeader) {
+    public CSVSearch(String target, List<List<String>> parsedRows, List<String> header, Boolean hasHeader) {
         this.target = target;
         this.parsedRows = parsedRows;
         this.header = header;
@@ -30,13 +30,13 @@ public class Search {
      * @param targetColumn is the column to search in
      * @return the rows that contain the target value in the target column
      */
-    public ArrayList<String[]> search(String targetColumn) {
-        ArrayList<String[]> targetRows = new ArrayList<>();
+    public ArrayList<List<String>> search(String targetColumn) {
+        ArrayList<List<String>> targetRows = new ArrayList<>();
         int searchColumn = searchHelper(targetColumn);
         // Uses the searchHelper for cases where the column identifier wasn't found in the header or
         // the header is not existent
         if (searchColumn == Integer.MAX_VALUE) {
-            for (String[] row : this.parsedRows) {
+            for (List<String> row : this.parsedRows) {
                 for (String val : row) {
                     if (val.equalsIgnoreCase(this.target)) {
                         targetRows.add(row);
@@ -44,15 +44,15 @@ public class Search {
                 }
             }
         } else {
-            for (String[] row : this.parsedRows) {
+            for (List<String> row : this.parsedRows) {
                 // If there is a defined target then it only checks the value in that column for each row
-                if (row[searchColumn].equalsIgnoreCase(this.target)) {
+                if (row.get(searchColumn).equalsIgnoreCase(this.target)) {
                     targetRows.add(row);
                 }
             }
         }
         // Calls the print helper to print the final rows that contain the target value
-        printTargetRows(targetRows);
+//        printTargetRows(targetRows);
         return targetRows;
     }
 
@@ -60,7 +60,7 @@ public class Search {
      * Uses search without the targetColumn parameter, so it just searches the entire parsed file
      * @return The rows that contain the target value
      */
-    public ArrayList<String[]> search() {
+    public ArrayList<List<String>> search() {
         return this.search("-1");
     }
     /**
@@ -77,7 +77,7 @@ public class Search {
             // Converts the string to an int if it is possible
             col = Integer.parseInt(targetColumn);
             // Checks if the number is within the potential range of the parsed columns
-            if (col < 0 || col >= this.parsedRows.get(0).length) {
+            if (col < 0 || col >= this.parsedRows.get(0).size()) {
                 col = Integer.MAX_VALUE;
             }
         } catch (NumberFormatException e) {
@@ -98,21 +98,22 @@ public class Search {
         return col;
     }
 
-    /**
-     * This method prints out all the final Rows that have the target value in them
-     * @param targetRows is the given rows that contain the target value (in the target column if that
-     *                   is specified)
-     */
-    public void printTargetRows(ArrayList<String[]> targetRows) {
-        for (String[] row : targetRows) {
-            for (String val : row) {
-                if (row[row.length - 1].equals(val)) {
-                    System.out.print(val);
-                } else {
-                    System.out.print(val + ", ");
-                }
-            }
-            System.out.println();
-        }
-    }
+//    /**
+//     * This method prints out all the final Rows that have the target value in them
+//     * @param targetRows is the given rows that contain the target value (in the target column if that
+//     *                   is specified)
+//     */
+//    public void printTargetRows(ArrayList<List<String>> targetRows) {
+//        for (List<String> row : targetRows) {
+//
+////            for (String val : row) {
+////                if (row[row.() - 1].equals(val)) {
+////                    System.out.print(val);
+////                } else {
+////                    System.out.print(val + ", ");
+////                }
+////            }
+//            System.out.println();
+//        }
+//    }
 }

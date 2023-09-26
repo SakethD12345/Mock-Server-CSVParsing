@@ -32,6 +32,7 @@ public class LoadHandler implements Route {
             responseMap.put("load", "successful");
             responseMap.put("filepath", filename);
             Server.setLoadedCSV(parsedCSV);
+            Server.setCSVHeader(parser.getHeader());
 
             return adapter.toJson(responseMap);
 

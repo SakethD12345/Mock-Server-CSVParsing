@@ -78,12 +78,8 @@ public class CSVParser<T> {
      * @return the header data converted into a row Object of type T
      * @throws IOException if method is called for a file that has no header
      */
-    public T getHeader() throws IOException {
-        if (this.hasHeader) {
-            return this.header;
-        } else {
-            throw new IOException();
-        }
+    public T getHeader() {
+        return this.header;
     }
 
     /**

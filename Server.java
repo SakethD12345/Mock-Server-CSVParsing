@@ -11,6 +11,7 @@ import static spark.Spark.after;
 
 public class Server {
     private static ArrayList<List<String>> loadedCSV;
+    private static List<String> header;
 
     public static void main(String[] args) {
         // At time of creation, we decide on a specific datasource class:
@@ -20,7 +21,8 @@ public class Server {
         System.out.println("Server started; exiting main...");
     }
     public Server() {
-        loadedCSV = new ArrayList<List<String>>();
+        loadedCSV = new ArrayList<>();
+        header = new ArrayList<>();
 
         int port = 3232;
 
@@ -52,6 +54,14 @@ public class Server {
 
     public static void setLoadedCSV(ArrayList<List<String>> newLoadedCSV) {
         loadedCSV = newLoadedCSV;
+    }
+
+    public static List<String> getCSVHeader() {
+        return header;
+    }
+
+    public static void setCSVHeader(List<String> newCSVHeader) {
+        header = newCSVHeader;
     }
 
 }
