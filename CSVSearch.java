@@ -1,132 +1,118 @@
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-/**
- * The Search class of my project. Here, I use a given CSVParser to search through available data
- * for the given search term. There is also the option to provide a column identifier to limit the
- * search to one column of the data.
+/*
+This class is used to search for certain terms in the parsed files and also has the option for
+specifying the column that you want to search the term in
  */
-public class CSVSearch {
-    private Boolean hasHeader;
-    private String search;
-    private String nameIdentifier;
-    private Integer indexIdentifier;
-    private Boolean hasIdentifier;
-    private Boolean isIndex;
-    private CSVParser<List<String>> parser;
+public class Search {
+    public String target;
+    public List<List<String>> parsedRows;
+    public List<String> header;
+    public Boolean hasHeader;
 
     /**
-     * One of 3 Search constructors- used when the column identifier is given and is a name (not an
-     * index).
-     *
-     * @param parser The parser of the given file to use when searching
-     * @param search The search term itself, inputted by the user
-     * @param identifier The column name identifier to limit the search
+     * This is the constructor for the search class which instantiates all the instance variables
+     * @param target is the user's target value that they are searching for
+     * @param parsedRows is the parsedRows that are parsed from the original user's csv
+     * @param header is the parsed header of the csv if it exists otherwise it's an empty array
+     * @param hasHeader is a boolean telling whether the file has a header
      */
-    public CSVSearch(CSVParser<List<String>> parser, String search, String identifier) {
-        this.parser = parser;
-        this.hasHeader = parser.getHasHeader();
-        this.search = search;
-        this.nameIdentifier = identifier;
-        this.isIndex = Boolean.FALSE;
-        this.hasIdentifier = Boolean.TRUE;
+    public Search(String target, List<String[]> parsedRows, List<String> header, Boolean hasHeader) {
+        this.target = target;
+        this.parsedRows = parsedRows;
+        this.header = header;
+        this.hasHeader = hasHeader;
     }
 
     /**
-     * One of 3 Search constructors- used when the column identifier is given and is an index (not a
-     * name).
-     *
-     * @param parser The parser of the given file to use when searching
-     * @param search The search term itself, inputted by the user
-     * @param identifier The column index identifier to limit the search
+     * This is the method for searching through the parsed file for a target word given a target column
+     * @param targetColumn is the column to search in
+     * @return the rows that contain the target value in the target column
      */
-    public CSVSearch(CSVParser<List<String>> parser, String search, Integer identifier) {
-        this.parser = parser;
-        this.hasHeader = parser.getHasHeader();
-        this.search = search;
-        this.indexIdentifier = identifier;
-        this.isIndex = Boolean.TRUE;
-        this.hasIdentifier = Boolean.TRUE;
-    }
-
-    /**
-     * One of 3 Search constructors- used when no column identifier is given.
-     *
-     * @param parser The parser of the given file to use when searching
-     * @param search The search term itself, inputted by the user
-     */
-    public CSVSearch(CSVParser<List<String>> parser, String search) {
-        this.parser = parser;
-        this.hasHeader = parser.getHasHeader();
-        this.search = search;
-        this.hasIdentifier = Boolean.FALSE;
-    }
-
-    /**
-     * The main searching method, which goes through each row object produced by the CSVParser and
-     * returns a list of the rows that contain the search term somewhere in the row (if there is no
-     * column identifier), or the rows that contain the search term in the given column (if there is a
-     * column identifier).
-     *
-     * @return an ArrayList of the rows containing the search term in the correct column (if
-     *     applicable)
-     */
-    public ArrayList<List<String>> searchRows() {
-        ArrayList<List<String>> searchedRows = new ArrayList<>();
-        ArrayList<List<String>> parsedFile = this.parser.parseCSVFile();
-        for (List<String> row : parsedFile) {
-            for (String item : row) {
-                if (this.search.equalsIgnoreCase(item)) {
-                    if (!searchedRows.contains(row)) {
-                        searchedRows.add(row);
+    public ArrayList<String[]> search(String targetColumn) {
+        ArrayList<String[]> targetRows = new ArrayList<>();
+        int searchColumn = searchHelper(targetColumn);
+        // Uses the searchHelper for cases where the column identifier wasn't found in the header or
+        // the header is not existent
+        if (searchColumn == Integer.MAX_VALUE) {
+            for (String[] row : this.parsedRows) {
+                for (String val : row) {
+                    if (val.equalsIgnoreCase(this.target)) {
+                        targetRows.add(row);
                     }
                 }
             }
+        } else {
+            for (String[] row : this.parsedRows) {
+                // If there is a defined target then it only checks the value in that column for each row
+                if (row[searchColumn].equalsIgnoreCase(this.target)) {
+                    targetRows.add(row);
+                }
+            }
         }
-        if (this.hasHeader && this.hasIdentifier) {
-            try {
-                List<String> header = this.parser.getHeader();
-                int index = -1;
-                int i = 0;
-                if (!this.isIndex) {
-                    for (String item: header) {
-                        if (item.equalsIgnoreCase(this.nameIdentifier)) {
-                            index = i;
-                        }
-                        i++;
+        // Calls the print helper to print the final rows that contain the target value
+        printTargetRows(targetRows);
+        return targetRows;
+    }
+
+    /**
+     * Uses search without the targetColumn parameter, so it just searches the entire parsed file
+     * @return The rows that contain the target value
+     */
+    public ArrayList<String[]> search() {
+        return this.search("-1");
+    }
+    /**
+     * Helper for the search method that takes in the targetColumn and returns the number that
+     * correlates with that column using the headers or just the number. Also, potentially returns the
+     * max integer value in java if none of the column headers match with the string or if an invalid
+     * number is provided
+     * @param targetColumn is the user's input for what column they want to narrow the search to
+     * @return the index of the target column
+     */
+    public int searchHelper(String targetColumn) {
+        int col = Integer.MAX_VALUE;
+        try {
+            // Converts the string to an int if it is possible
+            col = Integer.parseInt(targetColumn);
+            // Checks if the number is within the potential range of the parsed columns
+            if (col < 0 || col >= this.parsedRows.get(0).length) {
+                col = Integer.MAX_VALUE;
+            }
+        } catch (NumberFormatException e) {
+            if (this.hasHeader) {
+                col = 0;
+                for (String item : this.header) {
+                    if (item.equalsIgnoreCase(targetColumn)) {
+                        return col;
+                    } else {
+                        col++;
                     }
+                }
+                System.out.println("Couldn't narrow search because the given column name wasn't found");
+            } else {
+                System.out.println("Couldn't narrow search because file doesn't contain column headers");
+            }
+        }
+        return col;
+    }
+
+    /**
+     * This method prints out all the final Rows that have the target value in them
+     * @param targetRows is the given rows that contain the target value (in the target column if that
+     *                   is specified)
+     */
+    public void printTargetRows(ArrayList<String[]> targetRows) {
+        for (String[] row : targetRows) {
+            for (String val : row) {
+                if (row[row.length - 1].equals(val)) {
+                    System.out.print(val);
                 } else {
-                    index = this.indexIdentifier;
+                    System.out.print(val + ", ");
                 }
-                ArrayList<List<String>> columnSearchedRows = new ArrayList<>();
-                for (List<String> row : searchedRows) {
-                    if (row.get(index).equalsIgnoreCase(this.search)) {
-                        columnSearchedRows.add(row);
-                    }
-                }
-                searchedRows = columnSearchedRows;
-            } catch (IOException e) {
-                System.err.println("This file has no header.");
             }
-        }
-        return searchedRows;
-    }
-
-    /**
-     * A method to print out the resulting rows so that the user can easily understand the results of
-     * their search.
-     *
-     * @param searchedRows an ArrayList of the rows to be printed
-     */
-    public void printRows(ArrayList<String[]> searchedRows) {
-        if (searchedRows.isEmpty()) {
-            System.out.println("No results found.");
-        }
-        for (String[] row : searchedRows) {
-            String stringRow = Arrays.toString(row);
-            System.out.println(stringRow);
+            System.out.println();
         }
     }
 }
