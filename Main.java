@@ -1,4 +1,9 @@
 public final class Main {
+    /**
+     * The initial method called when execution begins.
+     *
+     * @param args An array of command line arguments
+     */
     public static void main(String[] args) {
         new Main(args).run();
     }
@@ -11,7 +16,7 @@ public final class Main {
      * correct column (if applicable). This method is called in the main method above.
      */
     private void run() {
-
+        new Server();
+        System.out.println("Server started; exiting main...");
     }
-
 }

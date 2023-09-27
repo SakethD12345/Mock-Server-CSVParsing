@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ViewHandler implements Route {
-    private ArrayList<List<String>> parsedCSV;
     public ViewHandler() {
 
     }

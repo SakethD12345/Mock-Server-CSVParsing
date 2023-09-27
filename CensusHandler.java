@@ -33,14 +33,15 @@ public class CensusHandler implements Route {
     }
     public Object handle(Request request, Response response) {
         String state = request.queryParams("state");
-        String county = request.queryParams("county");
+        String county = request.queryParams("county") + " County, " + state;
+        System.out.println(county);
         String stateCode = stateToCode.get(state);
         String countyCode = countyToCode.get(state).get(county);
         try {
             Moshi moshi = new Moshi.Builder().build();
             Type listObject = Types.newParameterizedType(List.class, List.class, String.class);
             URL requestURL = new URL("https", "api.census.gov",
-                    "/data/2010/dec/sf1?get=NAME&for=county:" + countyCode + "&in=state:" + stateCode);
+                    "/data/2021/acs/acs1/subject/variables?get=NAME,S2802_C03_022E&for=county:" + countyCode + "&in=state:" + stateCode);
             HttpURLConnection clientConnection = connect(requestURL);
             Type mapObject = Types.newParameterizedType(Map.class, String.class, Object.class);
             JsonAdapter<List<List<String>>> listAdapter = moshi.adapter(listObject);
@@ -48,8 +49,10 @@ public class CensusHandler implements Route {
             List<List<String>> body = listAdapter.fromJson(new Buffer().readFrom(clientConnection.getInputStream()));
             clientConnection.disconnect();
             Map<String, Object> responseMap = new HashMap<>();
+            System.out.println(body);
             String broadband = body.get(1).get(1);
             responseMap.put("broadband", broadband);
+            System.out.println(broadband);
             return mapAdapter.toJson(responseMap);
         }
         catch (IOException | DatasourceException e) {

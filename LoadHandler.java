@@ -16,9 +16,7 @@ import java.util.Map;
 
 public class LoadHandler implements Route {
 
-    public LoadHandler() {
-
-    }
+    public LoadHandler() {}
 
     public Object handle(Request request, Response response) {
         try {
@@ -35,23 +33,10 @@ public class LoadHandler implements Route {
             Server.setCSVHeader(parser.getHeader());
 
             return adapter.toJson(responseMap);
-
         }
         catch (FileNotFoundException e) {
             System.err.println("File not found :(");
             return 0;
         }
     }
-
-//    public void loadcsv(String filepath, Boolean hasHeader) {
-//        try {
-//            FileReader reader = new FileReader(filepath);
-//            RowCreator rowCreator = new RowCreator();
-//            CSVParser<List<String>> parser = new CSVParser<>(reader, hasHeader, rowCreator);
-//            //this.loadedCSV = parser.parseCSVFile();
-//        }
-//        catch (FileNotFoundException e){
-//            System.err.println("CSV file not found. Please input a valid file path.");
-//        }
-//    }
 }
