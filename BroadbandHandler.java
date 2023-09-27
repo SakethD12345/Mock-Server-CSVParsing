@@ -5,24 +5,21 @@ import spark.Request;
 import spark.Response;
 import spark.Route;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import okio.Buffer;
-import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CensusHandler implements Route {
+public class BroadbandHandler implements Route {
     private static HashMap<String, String> stateToCode;
     private static HashMap<String, HashMap<String, String>> countyToCode;
-    public CensusHandler() {
+    public BroadbandHandler() {
         try {
             generateStateCodes();
             generateCountyCodes();
@@ -33,29 +30,31 @@ public class CensusHandler implements Route {
     }
     public Object handle(Request request, Response response) {
         String state = request.queryParams("state");
-        String county = request.queryParams("county") + " County, " + state;
-        System.out.println(county);
+        String county = request.queryParams("county");
         String stateCode = stateToCode.get(state);
-        String countyCode = countyToCode.get(state).get(county);
+        String countyCode = countyToCode.get(state).get(county + " County, " + state);
+
+        Moshi moshi = new Moshi.Builder().build();
+        Type listObject = Types.newParameterizedType(List.class, List.class, String.class);
+        Type mapObject = Types.newParameterizedType(Map.class, String.class, Object.class);
+        JsonAdapter<List<List<String>>> listAdapter = moshi.adapter(listObject);
+        JsonAdapter<Map<String, Object>> mapAdapter = moshi.adapter(mapObject);
         try {
-            Moshi moshi = new Moshi.Builder().build();
-            Type listObject = Types.newParameterizedType(List.class, List.class, String.class);
+
             URL requestURL = new URL("https", "api.census.gov",
                     "/data/2021/acs/acs1/subject/variables?get=NAME,S2802_C03_022E&for=county:" + countyCode + "&in=state:" + stateCode);
             HttpURLConnection clientConnection = connect(requestURL);
-            Type mapObject = Types.newParameterizedType(Map.class, String.class, Object.class);
-            JsonAdapter<List<List<String>>> listAdapter = moshi.adapter(listObject);
-            JsonAdapter<Map<String, Object>> mapAdapter = moshi.adapter(mapObject);
             List<List<String>> body = listAdapter.fromJson(new Buffer().readFrom(clientConnection.getInputStream()));
             clientConnection.disconnect();
             Map<String, Object> responseMap = new HashMap<>();
-            System.out.println(body);
             String broadband = body.get(1).get(1);
+            responseMap.put("result", "success");
+            responseMap.put("state", state);
+            responseMap.put("county", county);
             responseMap.put("broadband", broadband);
-            System.out.println(broadband);
             return mapAdapter.toJson(responseMap);
         }
-        catch (IOException | DatasourceException e) {
+        catch (DatasourceException | IOException e) {
             return 0;
         }
 

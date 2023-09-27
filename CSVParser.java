@@ -28,7 +28,7 @@ public class CSVParser<T> {
      * @param hasHeader whether the file has a header
      * @param rowCreator the row creator that will create rows of type T
      */
-    public CSVParser(Reader reader, Boolean hasHeader, CreatorFromRow<T> rowCreator) {
+    public CSVParser(Reader reader, Boolean hasHeader, CreatorFromRow<T> rowCreator) throws ParserException {
         this.hasHeader = hasHeader;
         this.rowCreator = rowCreator;
         this.bufferedReader = new BufferedReader(reader);
@@ -40,7 +40,7 @@ public class CSVParser<T> {
                 header = Arrays.asList(line);
 
             } catch (IOException e) {
-                System.err.println("Sorry, an error has occurred when reading the file.");
+                throw new ParserException("Sorry, an error has occurred when reading the file.");
             }
 
             this.header = this.rowCreator.create(header);
@@ -54,7 +54,7 @@ public class CSVParser<T> {
      *
      * @return an ArrayList of all the rows of the file as Objects of type T
      */
-    public ArrayList<T> parseCSVFile() {
+    public ArrayList<T> parseCSVFile() throws ParserException {
         ArrayList<T> parsed = new ArrayList<>();
 
         try {
@@ -75,7 +75,7 @@ public class CSVParser<T> {
                 parsed.add(row);
             }
         } catch (IOException e) {
-            System.err.println("Sorry, an error has occurred when reading the file.");
+            throw new ParserException("Sorry, an error has occurred when reading the file.");
         }
         return parsed;
     }
@@ -86,8 +86,13 @@ public class CSVParser<T> {
      * @return the header data converted into a row Object of type T
      * @throws IOException if method is called for a file that has no header
      */
-    public T getHeader() {
-        return this.header;
+    public T getHeader() throws IOException {
+        if (this.hasHeader) {
+            return this.header;
+        }
+        else {
+            throw new IOException();
+        }
     }
 
     /**

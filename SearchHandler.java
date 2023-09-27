@@ -19,23 +19,55 @@ public class SearchHandler implements Route {
     public Object handle(Request request, Response response) {
         String target = request.queryParams("search");
         String colIdentifier = request.queryParams("identifier");
-        String header = request.queryParams("header");
-        Boolean hasHeader = Boolean.FALSE;
-        if (header.equalsIgnoreCase("true")) {
-            hasHeader = Boolean.TRUE;
-        }
-        ArrayList<List<String>> parsedCSV = Server.getLoadedCSV();
-        CSVSearch searcher = new CSVSearch(target, Server.getLoadedCSV(), Server.getCSVHeader(), hasHeader);
-        ArrayList<List<String>> searchedRows = searcher.search(colIdentifier);
+       // String header = request.queryParams("header");
 
         Moshi moshi = new Moshi.Builder().build();
         Type mapStringObject = Types.newParameterizedType(Map.class, String.class, Object.class);
         JsonAdapter<Map<String, Object>> adapter = moshi.adapter(mapStringObject);
         Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("view", "successful");
-        System.out.println("view: ");
-        responseMap.put("data", searchedRows);
-        return adapter.toJson(responseMap);
+
+//        Boolean hasHeader = Boolean.FALSE;
+//        if (header.equalsIgnoreCase("true")) {
+//            hasHeader = Boolean.TRUE;
+//        }
+//        else if (!header.equalsIgnoreCase("false")) {
+//            responseMap.put("result", "error_bad_request");
+//            return adapter.toJson(responseMap);
+//        }
+
+        if (target != null) {
+            CSVSearch searcher = new CSVSearch(target, Server.getLoadedCSV(), Server.getHasHeader());
+            ArrayList<List<String>> searchedRows;
+            if (colIdentifier != null) {
+                responseMap.put("column identifier", colIdentifier);
+                try {
+                    searchedRows = searcher.search(colIdentifier);
+                }
+                catch (SearchException e) {
+                    responseMap.put("available columns", Server.getCSVHeader());
+                    responseMap.put("result", "error_bad_request");
+                    responseMap.put("error", e.getMessage());
+                    return adapter.toJson(responseMap);
+                }
+            } else {
+                try {
+                searchedRows = searcher.search();
+                }
+                catch (SearchException e) {
+                    responseMap.put("result", "error_bad_request");
+                    responseMap.put("error", e.getMessage());
+                    return adapter.toJson(responseMap);
+                }
+            }
+            responseMap.put("result", "success");
+            responseMap.put("target", target);
+            responseMap.put("data", searchedRows);
+            return adapter.toJson(responseMap);
+        }
+        else {
+            responseMap.put("result", "error_bad_request");
+            return adapter.toJson(responseMap);
+        }
     }
 
 }

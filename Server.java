@@ -1,22 +1,20 @@
 import spark.Spark;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static spark.Spark.after;
 
 public class Server {
     private static ArrayList<List<String>> loadedCSV;
     private static List<String> header;
+    private static Boolean hasHeader;
 
 
     public Server() {
         loadedCSV = new ArrayList<>();
         header = new ArrayList<>();
+        hasHeader = Boolean.TRUE;
 
         int port = 4567;
 
@@ -27,13 +25,13 @@ public class Server {
         });
 
         LoadHandler loadHandler = new LoadHandler();
-        Spark.get("load", loadHandler);
+        Spark.get("loadcsv", loadHandler);
         ViewHandler viewHandler = new ViewHandler();
-        Spark.get("view", viewHandler);
+        Spark.get("viewcsv", viewHandler);
         SearchHandler searchHandler = new SearchHandler();
-        Spark.get("search", searchHandler);
-        CensusHandler censusHandler = new CensusHandler();
-        Spark.get("broadband", censusHandler);
+        Spark.get("searchcsv", searchHandler);
+        BroadbandHandler broadbandHandler = new BroadbandHandler();
+        Spark.get("broadband", broadbandHandler);
         Spark.init();
         Spark.awaitInitialization();
 
@@ -55,6 +53,8 @@ public class Server {
     public static void setCSVHeader(List<String> newCSVHeader) {
         header = newCSVHeader;
     }
+    public static void setHasHeader(Boolean bool) {hasHeader = bool; }
+    public static Boolean getHasHeader() { return hasHeader; }
 
 
 }

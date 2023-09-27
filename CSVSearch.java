@@ -15,14 +15,15 @@ public class CSVSearch {
      * This is the constructor for the search class which instantiates all the instance variables
      * @param target is the user's target value that they are searching for
      * @param parsedRows is the parsedRows that are parsed from the original user's csv
-     * @param header is the parsed header of the csv if it exists otherwise it's an empty array
      * @param hasHeader is a boolean telling whether the file has a header
      */
-    public CSVSearch(String target, List<List<String>> parsedRows, List<String> header, Boolean hasHeader) {
+    public CSVSearch(String target, List<List<String>> parsedRows, Boolean hasHeader) {
         this.target = target;
         this.parsedRows = parsedRows;
-        this.header = header;
         this.hasHeader = hasHeader;
+        if (this.hasHeader) {
+            this.header = Server.getCSVHeader();
+        }
     }
 
     /**
@@ -30,7 +31,7 @@ public class CSVSearch {
      * @param targetColumn is the column to search in
      * @return the rows that contain the target value in the target column
      */
-    public ArrayList<List<String>> search(String targetColumn) {
+    public ArrayList<List<String>> search(String targetColumn) throws SearchException {
         ArrayList<List<String>> targetRows = new ArrayList<>();
         int searchColumn = searchHelper(targetColumn);
         // Uses the searchHelper for cases where the column identifier wasn't found in the header or
@@ -60,7 +61,7 @@ public class CSVSearch {
      * Uses search without the targetColumn parameter, so it just searches the entire parsed file
      * @return The rows that contain the target value
      */
-    public ArrayList<List<String>> search() {
+    public ArrayList<List<String>> search() throws SearchException {
         return this.search("-1");
     }
     /**
@@ -71,7 +72,7 @@ public class CSVSearch {
      * @param targetColumn is the user's input for what column they want to narrow the search to
      * @return the index of the target column
      */
-    public int searchHelper(String targetColumn) {
+    public int searchHelper(String targetColumn) throws SearchException {
         int col = Integer.MAX_VALUE;
         try {
             // Converts the string to an int if it is possible
@@ -90,30 +91,12 @@ public class CSVSearch {
                         col++;
                     }
                 }
-                System.out.println("Couldn't narrow search because the given column name wasn't found");
+                throw new SearchException("Couldn't narrow search because the given column name wasn't found");
             } else {
-                System.out.println("Couldn't narrow search because file doesn't contain column headers");
+                throw new SearchException("Couldn't narrow search because file doesn't contain column headers");
             }
         }
         return col;
     }
 
-//    /**
-//     * This method prints out all the final Rows that have the target value in them
-//     * @param targetRows is the given rows that contain the target value (in the target column if that
-//     *                   is specified)
-//     */
-//    public void printTargetRows(ArrayList<List<String>> targetRows) {
-//        for (List<String> row : targetRows) {
-//
-////            for (String val : row) {
-////                if (row[row.() - 1].equals(val)) {
-////                    System.out.print(val);
-////                } else {
-////                    System.out.print(val + ", ");
-////                }
-////            }
-//            System.out.println();
-//        }
-//    }
 }
