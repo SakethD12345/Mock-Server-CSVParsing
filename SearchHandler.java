@@ -12,6 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 public class SearchHandler implements Route {
+
+    public SearchHandler() {
+
+    }
     public Object handle(Request request, Response response) {
         String target = request.queryParams("search");
         String colIdentifier = request.queryParams("identifier");

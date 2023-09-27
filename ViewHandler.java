@@ -24,7 +24,6 @@ public class ViewHandler implements Route {
         JsonAdapter<Map<String, Object>> adapter = moshi.adapter(mapStringObject);
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("view", "successful");
-        System.out.println("view: ");
         responseMap.put("data", Server.getLoadedCSV());
         return adapter.toJson(responseMap);
 

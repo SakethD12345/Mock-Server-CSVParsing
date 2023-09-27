@@ -24,7 +24,7 @@ public class Server {
         loadedCSV = new ArrayList<>();
         header = new ArrayList<>();
 
-        int port = 3232;
+        int port = 4567;
 
         Spark.port(port);
         after((request, response) -> {
@@ -38,9 +38,14 @@ public class Server {
         //System.out.println(getLoadedCSV());
         Spark.get("load", loadHandler);
         ViewHandler viewHandler = new ViewHandler();
-        Spark.get("view", new ViewHandler());
+        Spark.get("view", viewHandler);
+        SearchHandler searchHandler = new SearchHandler();
+        Spark.get("search", searchHandler);
+        CensusHandler censusHandler = new CensusHandler();
+        Spark.get("broadband", censusHandler);
         Spark.init();
         Spark.awaitInitialization();
+
 
 
 
@@ -63,5 +68,6 @@ public class Server {
     public static void setCSVHeader(List<String> newCSVHeader) {
         header = newCSVHeader;
     }
+
 
 }

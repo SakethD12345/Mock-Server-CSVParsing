@@ -62,6 +62,14 @@ public class CSVParser<T> {
                  line != null;
                  line = this.bufferedReader.readLine()) {
                 List<String> items = Arrays.asList(regex.split(line));
+                int i = 0;
+                for (String item: items) {
+                    item = item.replaceAll("^\"|\"$",  "");
+                    item = item.replaceAll(",", "");
+                    items.set(i, item);
+                    i++;
+
+                }
 
                 T row = this.rowCreator.create(items);
                 parsed.add(row);
