@@ -1,13 +1,4 @@
-import com.google.common.cache.Cache;
-
-import java.util.HashMap;
-
-public class CensusDatasource {
-    public CensusDatasource(Cache<String, HashMap<String, String>> cache) {
-
-    }
-
-
-
-
+public interface CensusDatasource {
+    public String getStateCode(String state) throws DatasourceException;
+    public String getCountyCode(String county, String state) throws DatasourceException;
 }

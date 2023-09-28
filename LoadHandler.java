@@ -52,7 +52,6 @@ public class LoadHandler implements Route {
                 ArrayList<List<String>> parsedCSV = parser.parseCSVFile();
                 responseMap.put("result", "success");
                 responseMap.put("filepath", filename);
-                System.out.println(parsedCSV);
                 Server.setLoadedCSV(parsedCSV);
                 try {
                     Server.setCSVHeader(parser.getHeader());

@@ -1,7 +1,10 @@
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import spark.Spark;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static spark.Spark.after;
 
@@ -33,7 +36,14 @@ public class Server {
         SearchHandler searchHandler = new SearchHandler();
         Spark.get("searchcsv", searchHandler);
 
-        BroadbandHandler broadbandHandler = new BroadbandHandler();
+        Cache<String, String[]> cache = CacheBuilder.newBuilder()
+                .maximumSize(10)
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .build();
+
+
+
+        BroadbandHandler broadbandHandler = new BroadbandHandler(cache, new APICensusDatasource());
         Spark.get("broadband", broadbandHandler);
 
         Spark.init();
