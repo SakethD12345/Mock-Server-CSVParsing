@@ -21,9 +21,12 @@ public class CSVSearch {
         this.target = target;
         this.parsedRows = parsedRows;
         this.hasHeader = hasHeader;
-        if (this.hasHeader) {
-            this.header = Server.getCSVHeader();
-        }
+    }
+    public CSVSearch(String target, List<List<String>> parsedRows, Boolean hasHeader, List<String> header) {
+        this.target = target;
+        this.parsedRows = parsedRows;
+        this.hasHeader = hasHeader;
+        this.header = header;
     }
 
     /**

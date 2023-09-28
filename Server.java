@@ -26,12 +26,16 @@ public class Server {
 
         LoadHandler loadHandler = new LoadHandler();
         Spark.get("loadcsv", loadHandler);
+
         ViewHandler viewHandler = new ViewHandler();
         Spark.get("viewcsv", viewHandler);
+
         SearchHandler searchHandler = new SearchHandler();
         Spark.get("searchcsv", searchHandler);
+
         BroadbandHandler broadbandHandler = new BroadbandHandler();
         Spark.get("broadband", broadbandHandler);
+
         Spark.init();
         Spark.awaitInitialization();
 
@@ -46,14 +50,12 @@ public class Server {
         loadedCSV = newLoadedCSV;
     }
 
-    public static List<String> getCSVHeader() {
-        return header;
-    }
-
     public static void setCSVHeader(List<String> newCSVHeader) {
         header = newCSVHeader;
     }
     public static void setHasHeader(Boolean bool) {hasHeader = bool; }
+
+    public static List<String> getHeader() { return header; }
     public static Boolean getHasHeader() { return hasHeader; }
 
 

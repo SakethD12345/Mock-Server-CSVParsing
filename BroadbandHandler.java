@@ -15,38 +15,76 @@ import okio.Buffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import javax.xml.crypto.Data;
 
 public class BroadbandHandler implements Route {
     private static HashMap<String, String> stateToCode;
-    private static HashMap<String, HashMap<String, String>> countyToCode;
+    private Cache<String, HashMap<String, String>> countyCache;
+    public BroadbandHandler(Cache cache) {
+        this.setUp();
+    }
     public BroadbandHandler() {
-        try {
-            generateStateCodes();
-            generateCountyCodes();
-        }
-        catch (DatasourceException e) {
-        }
+        this.setUp();
 
     }
+    public void setUp() {
+        this.countyCache = CacheBuilder.newBuilder()
+                .maximumSize(10)
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .build();
+
+        try {
+            generateStateCodes();
+
+        }
+        catch (DatasourceException e) {}
+    }
+
     public Object handle(Request request, Response response) {
         String state = request.queryParams("state");
         String county = request.queryParams("county");
         String stateCode = stateToCode.get(state);
-        String countyCode = countyToCode.get(state).get(county + " County, " + state);
+        String countyCode;
 
         Moshi moshi = new Moshi.Builder().build();
         Type listObject = Types.newParameterizedType(List.class, List.class, String.class);
         Type mapObject = Types.newParameterizedType(Map.class, String.class, Object.class);
         JsonAdapter<List<List<String>>> listAdapter = moshi.adapter(listObject);
         JsonAdapter<Map<String, Object>> mapAdapter = moshi.adapter(mapObject);
-        try {
+        Map<String, Object> responseMap = new HashMap<>();
 
+
+        if (countyCache.asMap().containsKey(state)) {
+            if (countyCache.asMap().get(state).containsKey(county + " County, " + state)) {
+                countyCode = countyCache.getIfPresent(state).get(county + " County, " + state);
+            }
+            else {
+                responseMap.put("result", "error_bad_request");
+                return mapAdapter.toJson(responseMap);
+            }
+        }
+        else {
+            HashMap<String, String> countyMap = this.generateCountyCodes(state);
+            countyCode = countyMap.get(county + " County, " + state);
+            countyCache.put(state, countyMap);
+        }
+
+
+        if (state == null || county == null || !stateToCode.containsKey(state)) {
+            responseMap.put("result", "error_bad_request");
+            return mapAdapter.toJson(responseMap);
+        }
+        try {
             URL requestURL = new URL("https", "api.census.gov",
                     "/data/2021/acs/acs1/subject/variables?get=NAME,S2802_C03_022E&for=county:" + countyCode + "&in=state:" + stateCode);
             HttpURLConnection clientConnection = connect(requestURL);
             List<List<String>> body = listAdapter.fromJson(new Buffer().readFrom(clientConnection.getInputStream()));
             clientConnection.disconnect();
-            Map<String, Object> responseMap = new HashMap<>();
             String broadband = body.get(1).get(1);
             responseMap.put("result", "success");
             responseMap.put("state", state);
@@ -76,25 +114,13 @@ public class BroadbandHandler implements Route {
         }
     }
 
-    private static void generateCountyCodes() throws DatasourceException {
-        try {
-            Moshi moshi = new Moshi.Builder().build();
-            Type listObject = Types.newParameterizedType(List.class, List.class, String.class);
-            JsonAdapter<List<List<String>>> adapter = moshi.adapter(listObject);
-            countyToCode = new HashMap<>();
-            for (String state: stateToCode.keySet()) {
-                URL requestURL = new URL("https", "api.census.gov", "/data/2010/dec/sf1?get=NAME&for=county:*&in=state:" + stateToCode.get(state));
-                HttpURLConnection clientConnection = connect(requestURL);
-                List<List<String>> body = adapter.fromJson(new Buffer().readFrom(clientConnection.getInputStream()));
-                HashMap<String, String> countyToCodeForState = listToMap(body);
-                countyToCode.put(state, countyToCodeForState);
-                clientConnection.disconnect();
-            }
-        }
-        catch (IOException | DatasourceException e) {
-            throw new DatasourceException(e.getMessage());
-        }
-
+    private HashMap<String, String> generateCountyCodes(String state) {
+        Moshi moshi = new Moshi.Builder().build();
+        Type listObject = Types.newParameterizedType(List.class, List.class, String.class);
+        JsonAdapter<List<List<String>>> adapter = moshi.adapter(listObject);
+        HashMap<String, String> countyMap = this.getCountyCodes(adapter, state);
+        this.countyCache.put(state, countyMap);
+        return countyMap;
     }
 
     private static HashMap<String, String> listToMap(List<List<String>> originalList) {
@@ -109,13 +135,27 @@ public class BroadbandHandler implements Route {
 
     private static HttpURLConnection connect(URL requestURL) throws DatasourceException, IOException {
         URLConnection urlConnection = requestURL.openConnection();
-        if(! (urlConnection instanceof HttpURLConnection))
+        if(! (urlConnection instanceof HttpURLConnection clientConnection))
             throw new DatasourceException("unexpected: result of connection wasn't HTTP");
-        HttpURLConnection clientConnection = (HttpURLConnection) urlConnection;
         clientConnection.connect(); // GET
         if(clientConnection.getResponseCode() != 200)
             throw new DatasourceException("unexpected: API connection not success status "+clientConnection.getResponseMessage());
         return clientConnection;
+    }
+
+    private HashMap<String, String> getCountyCodes(JsonAdapter<List<List<String>>> adapter, String state) {
+        HashMap<String, String> map = new HashMap<>();
+        try {
+            URL requestURL = new URL("https", "api.census.gov", "/data/2010/dec/sf1?get=NAME&for=county:*&in=state:" + stateToCode.get(state));
+            HttpURLConnection clientConnection = connect(requestURL);
+            List<List<String>> body = adapter.fromJson(new Buffer().readFrom(clientConnection.getInputStream()));
+            clientConnection.disconnect();
+            map = listToMap(body);
+            return map;
+        }
+        catch (IOException | DatasourceException e) {
+            return map;
+        }
     }
 
 }

@@ -14,15 +14,14 @@ import java.util.List;
 import java.util.Map;
 
 public class ViewHandler implements Route {
-    public ViewHandler() {
-
-    }
+    public ViewHandler() {}
     public Object handle(Request request, Response response) {
         Moshi moshi = new Moshi.Builder().build();
         Type mapStringObject = Types.newParameterizedType(Map.class, String.class, Object.class);
         JsonAdapter<Map<String, Object>> adapter = moshi.adapter(mapStringObject);
         Map<String, Object> responseMap = new HashMap<>();
         responseMap.put("result", "success");
+        System.out.println(Server.getLoadedCSV());
         responseMap.put("data", Server.getLoadedCSV());
         return adapter.toJson(responseMap);
 

@@ -13,13 +13,11 @@ import java.util.Map;
 
 public class SearchHandler implements Route {
 
-    public SearchHandler() {
+    public SearchHandler() {}
 
-    }
     public Object handle(Request request, Response response) {
         String target = request.queryParams("search");
         String colIdentifier = request.queryParams("identifier");
-       // String header = request.queryParams("header");
 
         Moshi moshi = new Moshi.Builder().build();
         Type mapStringObject = Types.newParameterizedType(Map.class, String.class, Object.class);
@@ -36,7 +34,13 @@ public class SearchHandler implements Route {
 //        }
 
         if (target != null) {
-            CSVSearch searcher = new CSVSearch(target, Server.getLoadedCSV(), Server.getHasHeader());
+            CSVSearch searcher;
+            if (Server.getHasHeader()) {
+                searcher = new CSVSearch(target, Server.getLoadedCSV(), Boolean.TRUE, Server.getHeader());
+            }
+            else {
+                searcher = new CSVSearch(target, Server.getLoadedCSV(), Boolean.FALSE);
+            }
             ArrayList<List<String>> searchedRows;
             if (colIdentifier != null) {
                 responseMap.put("column identifier", colIdentifier);
@@ -44,7 +48,9 @@ public class SearchHandler implements Route {
                     searchedRows = searcher.search(colIdentifier);
                 }
                 catch (SearchException e) {
-                    responseMap.put("available columns", Server.getCSVHeader());
+                    if (Server.getHasHeader()) {
+                        responseMap.put("available columns", Server.getHeader());
+                    }
                     responseMap.put("result", "error_bad_request");
                     responseMap.put("error", e.getMessage());
                     return adapter.toJson(responseMap);
