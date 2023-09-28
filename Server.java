@@ -41,8 +41,6 @@ public class Server {
                 .expireAfterWrite(10, TimeUnit.MINUTES)
                 .build();
 
-
-
         BroadbandHandler broadbandHandler = new BroadbandHandler(cache, new APICensusDatasource());
         Spark.get("broadband", broadbandHandler);
 
