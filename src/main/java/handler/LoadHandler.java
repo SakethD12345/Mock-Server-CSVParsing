@@ -20,10 +20,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This class loads the filename that the user gives
+ */
 public class LoadHandler implements Route {
 
     public LoadHandler() {}
 
+    /**
+     * This method gets the filename and loads and parses the file
+     * @param request is the request
+     * @param response is the response
+     * @return is the 2D Json array saying if the load was successful
+     */
     public Object handle(Request request, Response response) {
         Moshi moshi = new Moshi.Builder().build();
         Type mapStringObject = Types.newParameterizedType(Map.class, String.class, Object.class);
@@ -61,10 +70,12 @@ public class LoadHandler implements Route {
                 Server.setLoadedCSV(parsedCSV);
                 try {
                     Server.setCSVHeader(parser.getHeader());
-                } catch (IOException ignored) {
+                    Server.setHasHeader(Boolean.TRUE);
+                } catch (ParserException e) {
                     Server.setHasHeader(Boolean.FALSE);
                 }
 
+                Server.setIsLoaded(Boolean.TRUE);
                 return adapter.toJson(responseMap);
             }
             catch (ParserException e) {

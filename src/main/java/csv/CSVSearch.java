@@ -90,6 +90,9 @@ public class CSVSearch {
             }
         } catch (NumberFormatException e) {
             if (this.hasHeader) {
+                if (this.header == null) {
+                    throw new SearchException("No header provided.");
+                }
                 col = 0;
                 for (String item : this.header) {
                     if (item.equalsIgnoreCase(targetColumn)) {

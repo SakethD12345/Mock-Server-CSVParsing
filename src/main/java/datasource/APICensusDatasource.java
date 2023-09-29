@@ -50,10 +50,12 @@ public class APICensusDatasource implements CensusDatasource {
      * @throws IOException
      */
     public String getStateCode(String state) throws DatasourceException, IOException {
+
         if (!this.stateCodesGenerated) {
             generateStateCodes();
             this.stateCodesGenerated = Boolean.TRUE;
         }
+        // If the hashmap already contains the state then it gets the code associated with that name
         if (stateCodes.containsKey(state)) {
             return stateCodes.get(state);
         } else {
@@ -73,15 +75,25 @@ public class APICensusDatasource implements CensusDatasource {
     public String getCountyCode(String county, String state) throws DatasourceException, IOException {
         String countyCode;
 
+        // If the cache has the state name in it then the cache gets the county code from the associated county name
         if (countyCache.asMap().containsKey(state)) {
             if (countyCache.asMap().get(state).containsKey(county + " County, " + state)) {
                 countyCode = countyCache.getIfPresent(state).get(county + " County, " + state);
             } else {
                 throw new DatasourceException("Invalid county.");
             }
-        } else {
+        }
+        // Otherwise the code adds the state's counties and their respective codes to the hashmap in the countyCache
+        else {
             HashMap<String, String> countyMap = this.generateCountyCodes(state);
-            countyCode = countyMap.get(county + " County, " + state);
+            String countyName = county + " County, " + state;
+            if (countyMap.containsKey(countyName)) {
+                countyCode = countyMap.get(countyName);
+            }
+            else {
+                throw new DatasourceException("County not in given state.");
+            }
+
         }
         return countyCode;
     }
@@ -112,6 +124,7 @@ public class APICensusDatasource implements CensusDatasource {
     private static HashMap<String, String> listToMap(List<List<String>> originalList) {
         HashMap<String, String> finalMap = new HashMap<>();
         for (List<String> row : originalList) {
+            // The first value will be the state or county name and the last value is the respective code
             finalMap.put(row.get(0), row.get(row.size() - 1));
         }
         finalMap.remove("NAME");

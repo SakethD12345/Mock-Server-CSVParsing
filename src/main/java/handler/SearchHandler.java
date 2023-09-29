@@ -10,16 +10,26 @@ import csv.CSVSearch;
 import exception.SearchException;
 import server.Server;
 
+import java.io.StringReader;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This class handles with searching the loaded final
+ */
 public class SearchHandler implements Route {
 
     public SearchHandler() {}
 
+    /**
+     * This method
+     * @param request is the request
+     * @param response is the response
+     * @return is the 2D Json arrray with the search result
+     */
     public Object handle(Request request, Response response) {
         String target = request.queryParams("target");
         String colIdentifier = request.queryParams("identifier");
@@ -28,6 +38,11 @@ public class SearchHandler implements Route {
         Type mapStringObject = Types.newParameterizedType(Map.class, String.class, Object.class);
         JsonAdapter<Map<String, Object>> adapter = moshi.adapter(mapStringObject);
         Map<String, Object> responseMap = new HashMap<>();
+
+        if (!Server.getIsLoaded()) {
+            responseMap.put("result", "error_file_not_loaded");
+            return adapter.toJson(responseMap);
+        }
 
         if (target != null) {
             CSVSearch searcher;

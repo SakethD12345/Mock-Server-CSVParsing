@@ -18,15 +18,20 @@ import datasource.CensusDatasource;
 import exception.DatasourceException;
 
 /**
- * This class
+ * This class deals with getting the broadband percentage
  */
 public class BroadbandHandler implements Route {
     private Cache<String, String[]> cache;
     private CensusDatasource datasource;
     private Boolean caching;
+
+    /**
+     * The constructor builds a broadband handler with a cache and the datasource
+     * @param cache is the cache
+     * @param datasource is the data source
+     */
     public BroadbandHandler(Cache<String, String[]> cache, CensusDatasource datasource) {
         this.datasource = datasource;
-
         this.caching = Boolean.TRUE;
         this.cache = cache;
 
@@ -37,6 +42,12 @@ public class BroadbandHandler implements Route {
 
     }
 
+    /**
+     * This method gets the state and county names and gets the broadband percentage
+     * @param request is the request
+     * @param response is the response
+     * @return a 2D JSon Array
+     */
     public Object handle(Request request, Response response) {
         Moshi moshi = new Moshi.Builder().build();
         Type mapObject = Types.newParameterizedType(Map.class, String.class, Object.class);
@@ -71,8 +82,5 @@ public class BroadbandHandler implements Route {
             responseMap.put("error", e.getMessage());
             return mapAdapter.toJson(responseMap);
         }
-
     }
-
-
 }

@@ -1,7 +1,9 @@
 package csv;
 import exception.ParserException;
 
+import javax.swing.text.html.parser.Parser;
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -89,12 +91,12 @@ public class CSVParser<T> {
      * @return the header data converted into a row Object of type T
      * @throws IOException if method is called for a file that has no header
      */
-    public T getHeader() throws IOException {
+    public T getHeader() throws ParserException {
         if (this.hasHeader) {
             return this.header;
         }
         else {
-            throw new IOException();
+            throw new ParserException("Header doesn't exist");
         }
     }
 
